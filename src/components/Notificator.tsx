@@ -139,10 +139,24 @@ function Notificator() {
   }
 
   useEffect(() => {
+    if(islandJobs.length > 0){
+      islandJobs.map((job) => job.cancel());
+    }
+    if(wpJobs.length > 0){
+      wpJobs.map((job) => job.cancel());
+    }
+
     requestPermission();
   }, [])
 
   useEffect(() => {
+    if(islandJobs.length > 0){
+      islandJobs.map((job) => job.cancel());
+    }
+    if(wpJobs.length > 0){
+      wpJobs.map((job) => job.cancel());
+    }
+
     if (isIslandEventActive) {
       scheduleNextIslandEvent();
     } else {
