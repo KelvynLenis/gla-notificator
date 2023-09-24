@@ -174,22 +174,22 @@ function Notificator() {
 
 
   return (
-    <div className="flex flex-col items-start justify-center gap-2 text-xl">
-      <div className="flex gap-2 w-72 md:w-full">
+    <div className="w-screen flex flex-col items-start justify-center gap-2 text-xl px-4">
+      <div className="flex justify-center gap-2 w-full">
         <span aria-checked={isIslandEventActive} className='w-28 bg-zinc-800 border border-yellow-500 rounded-md px-1 aria-checked:bg-yellow-500 aria-checked:text-black aria-checked:border-yellow-300 font-bold'>{isIslandEventActive ? 'On' : 'Off'}</span>
-        <button className="w-80 h-full bg-black border border-yellow-300 rounded-md hover:bg-yellow-300 hover:border-black hover:text-black" onClick={() => setIsIslandEventActive(!isIslandEventActive)}>Acionar Alerta de Island Event</button>
+        <button className="w-80 h-full bg-black border border-yellow-300 rounded-md hover:bg-yellow-300 hover:border-black hover:text-black aria-checked:border-yellow-300 min-[440px]:w-8/12 min-[760px]:w-72 min-[760px]:text-2xl" onClick={() => setIsIslandEventActive(!isIslandEventActive)}>Acionar Alerta de Island Event</button>
       </div>
-      <div className="flex gap-2 w-72 md:w-full">
+      <div className="flex justify-center gap-2 w-full">
         <span aria-checked={isWantedPirateActive} className='w-28 bg-zinc-800 border border-yellow-500 rounded-md px-1 aria-checked:bg-yellow-500 aria-checked:text-black font-bold'>{isWantedPirateActive ? 'On' : 'Off'}</span>
-        <button className="w-80 px-1 h-full bg-black border border-yellow-300 rounded-md hover:bg-yellow-300 hover:border-black hover:text-black aria-checked:border-yellow-300" onClick={() => setIsWantedPirateActive(!isWantedPirateActive)}>Acionar Alerta de Wanted Pirate</button>
+        <button className="w-80 px-1 h-full bg-black border border-yellow-300 rounded-md hover:bg-yellow-300 hover:border-black hover:text-black aria-checked:border-yellow-300 min-[440px]:w-8/12 min-[760px]:w-72 min-[760px]:text-2xl" onClick={() => setIsWantedPirateActive(!isWantedPirateActive)}>Acionar Alerta de Wanted Pirate</button>
       </div>
-      <div className='w-full flex items-center justify-center gap-2'>
-        <div className='flex flex-col items-center gap-5 mt-2 w-24 min-[550px]:w-fit'>
-          <span className='font-bold bg-zinc-900 px-2 rounded-md'>Próximo evento de ilha: </span>
+      <div className='w-full flex items-center justify-center gap-5'>
+        <div className='flex flex-col w-fit items-center gap-4 mt-2'>
+          <span className='font-bold bg-zinc-900 px-3 rounded-md min-[760px]:w-48 min-[760px]:text-2xl'>Próximo evento de ilha: </span>
           <span aria-checked={nextIslandEvent?.length === 0} className='flex w-fit bg-zinc-900 rounded-full px-3 py-1 aria-checked:hidden'>{nextIslandEvent}</span>
         </div>
-        <div className='flex flex-col items-center gap-4 mt-2 w-24 min-[550px]:w-fit md:w-fit'>
-          <span className='font-bold bg-zinc-900 px-2 rounded-md'>Próximo Wanted Pirate: </span>
+        <div className='w-fit flex flex-col items-center gap-4 mt-2'>
+          <span className='font-bold bg-zinc-900 px-3 rounded-md min-[760px]:w-48 min-[760px]:text-2xl'>Próximo Wanted Pirate: </span>
           <span aria-checked={nextWantedPirate?.length === 0} className='flex w-fit bg-zinc-900 rounded-full px-3 py-1 aria-checked:hidden'>{nextWantedPirate}</span>
         </div>
       </div>
