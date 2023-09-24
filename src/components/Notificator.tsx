@@ -76,7 +76,7 @@ function Notificator() {
       if (time.isAfter(finalTime)) {
         break;
       }
-  
+      
       if(now.isBefore(time)){
         const checkpoint = {
           time: time,
@@ -145,10 +145,10 @@ function Notificator() {
     if(wpJobs.length > 0){
       wpJobs.map((job) => job.cancel());
     }
-
+    
     requestPermission();
   }, [])
-
+  
   useEffect(() => {
     if(islandJobs.length > 0){
       islandJobs.map((job) => job.cancel());
@@ -170,7 +170,8 @@ function Notificator() {
       wpJobs.map((job) => job.cancel());
       setNextWantedPirate('');
     }
-  }, [isIslandEventActive, isWantedPirateActive])
+  }, [isIslandEventActive, isWantedPirateActive, nextIslandEvent, nextWantedPirate])
+
 
   return (
     <div className="flex flex-col items-start justify-center gap-2 text-xl">
@@ -183,11 +184,11 @@ function Notificator() {
         <button className="w-80 px-1 h-full bg-black border border-yellow-300 rounded-md hover:bg-yellow-300 hover:border-black hover:text-black aria-checked:border-yellow-300" onClick={() => setIsWantedPirateActive(!isWantedPirateActive)}>Acionar Alerta de Wanted Pirate</button>
       </div>
       <div className='w-full flex items-center justify-center gap-2'>
-        <div className='flex flex-col items-center gap-5 mt-2 w-44 md:w-fit'>
+        <div className='flex flex-col items-center gap-5 mt-2 w-24 min-[550px]:w-fit'>
           <span className='font-bold bg-zinc-900 px-2 rounded-md'>Próximo evento de ilha: </span>
           <span aria-checked={nextIslandEvent?.length === 0} className='flex w-fit bg-zinc-900 rounded-full px-3 py-1 aria-checked:hidden'>{nextIslandEvent}</span>
         </div>
-        <div className='flex flex-col items-center gap-4 mt-2 w-44 md:w-fit'>
+        <div className='flex flex-col items-center gap-4 mt-2 w-24 min-[550px]:w-fit md:w-fit'>
           <span className='font-bold bg-zinc-900 px-2 rounded-md'>Próximo Wanted Pirate: </span>
           <span aria-checked={nextWantedPirate?.length === 0} className='flex w-fit bg-zinc-900 rounded-full px-3 py-1 aria-checked:hidden'>{nextWantedPirate}</span>
         </div>
