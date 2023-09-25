@@ -32,7 +32,7 @@ navigator.serviceWorker.register('service-worker.js')
 
         sub = await serviceWorker.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: publicKeyResponse.data.publicKeyGenerated,
+          applicationServerKey: publicKeyResponse.data.publicKey,
         })
       }
 
