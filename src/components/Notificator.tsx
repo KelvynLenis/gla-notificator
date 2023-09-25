@@ -28,7 +28,7 @@ navigator.serviceWorker.register('service-worker.js')
       let sub = await serviceWorker.pushManager.getSubscription();
 
       if(!subscription) {
-        const publicKeyResponse = await api.get('/public-key ')
+        const publicKeyResponse = await api.get('/public-key')
 
         sub = await serviceWorker.pushManager.subscribe({
           userVisibleOnly: true,
