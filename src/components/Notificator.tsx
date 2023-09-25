@@ -1,176 +1,126 @@
 import { useEffect, useState } from 'react';
-import { Job, scheduleJob } from 'node-schedule';
 import notificationSound from '../assets/notification.mp3';
-import dayjs from 'dayjs';
+import { api } from '../lib/axios';
 
-const islandEventTimes = ['00:06', '00:36', '01:06', '01:36', '02:06', 
-                          '02:36', '03:06', '03:36', '04:06', '04:36', 
-                          '05:06', '05:36', '06:06', '06:36', '07:06', 
-                          '07:36', '08:06', '08:36', '09:06', '09:36', 
-                          '10:06', '10:36', '11:06', '11:36', '12:06', 
-                          '12:36', '13:06', '13:36', '14:06', '14:36', 
-                          '15:06', '15:36', '16:06', '16:36', '17:06', 
-                          '17:36', '18:06', '18:36', '19:06', '19:36', 
-                          '20:06', '20:36', '21:06', '21:36', '22:06', 
-                          '22:36', '23:06', '23:36'];
+// const islandEventTimes = [
+//   '00:06', '00:36', '01:06', '01:36', '02:06', 
+//   '02:36', '03:06', '03:36', '04:06', '04:36', 
+//   '05:06', '05:36', '06:06', '06:36', '07:06', 
+//   '07:36', '08:06', '08:36', '09:06', '09:36', 
+//   '10:06', '10:36', '11:06', '11:36', '12:06', 
+//   '12:36', '13:06', '13:36', '14:06', '14:36', 
+//   '15:06', '15:36', '16:06', '16:36', '17:06', 
+//   '17:36', '18:06', '18:36', '19:06', '19:36', 
+//   '20:06', '20:36', '21:06', '21:36', '22:06', 
+//   '22:36', '23:06', '23:36'
+// ];
 
-const wantedPirateTimes = ['00:36', '02:36', '04:36', '06:36', '08:36', 
-                          '10:36', '12:36', '14:36', '16:36', '18:36', 
-                          '20:36', '22:36'];
+// const wantedPirateTimes = [
+//   '00:36', '02:36', '04:36', '06:36', '08:36', 
+//   '10:36', '12:36', '14:36', '16:36', '18:36', 
+//   '20:36', '22:36'
+// ];
+
+let subscription: any = undefined;
+
+navigator.serviceWorker.register('service-worker.js')
+    .then(async serviceWorker => {
+      let sub = await serviceWorker.pushManager.getSubscription();
+
+      if(!subscription) {
+        const publicKeyResponse = await api.get('/public-key ')
+
+        sub = await serviceWorker.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: publicKeyResponse.data.publicKeyGenerated,
+        })
+      }
+
+      subscription = sub;
+
+      await api.post('/subscribe', {
+        sub,
+      })
+    })
 
 function Notificator() {
   const [isIslandEventActive, setIsIslandEventActive] = useState(false);
   const [isWantedPirateActive, setIsWantedPirateActive] = useState(false);
-  const [notificationsCount, setNotificationsCount] = useState(0);
   const [nextIslandEvent, setNextIslandEvent] = useState<string>('');
   const [nextWantedPirate, setNextWantedPirate] = useState<string>('');
-
-  const wpJobs: Job[] = [];
-  const islandJobs: Job[] = [];
   
   const audio = new Audio(notificationSound);
+
+
+  async function unsubscribeIslandEvent() {
+    await api.post('/unsubscribe-island');
+  }
+
+  async function unsubscribeWantedPirate() {
+    await api.post('/unsubscribe-wanted-pirate');
+  }
+
+  async function scheduleIslandNotification() {
+    const response = await api.post('/schedule-island-notification', subscription);
+    setNextIslandEvent(response.data.nextNotification);
+  }
+
+  async function scheduleWantedPirateNotification() {
+    const response = await api.post('/schedule-wanted-pirate-notification');
+    setNextWantedPirate(response.data.nextNotification);
+  }
 
   function requestPermission() {
     Notification.requestPermission()
   }
 
-  function notify(title: string) {
-    audio.play();
-    new Notification('GLA Notificator', {
-      body: `${title}`
-    })
-    title === 'Evento de ilha resetado' ? islandJobs.shift() : wpJobs.shift();
-    setNotificationsCount(notificationsCount + 1);
+  async function getNextIslandEvent() {
+    const response = await api.get('/next-island-event');
+    setNextIslandEvent(response.data.nextIslandEvent);
   }
 
-  function scheduleNextIslandEvent(){
-    const queue = makeIslandEventQueue();
-    const now = dayjs();
-
-    const filteredQueue = queue.filter((checkpoint) => checkpoint.time.isAfter(now));
-    
-    if(filteredQueue.length > 0){
-      const nextHour = filteredQueue[0].time.hour();
-      const nextMinute = filteredQueue[0].time.minute();
-      const job = scheduleJob({ hour: nextHour, minute: nextMinute }, () => notify(filteredQueue[0].title));
-      islandJobs.push(job);
-
-      const hour = filteredQueue[0].time.hour() < 10 ? '0' + filteredQueue[0].time.hour() : filteredQueue[0].time.hour();
-      const minute = filteredQueue[0].time.minute() < 10 ? '0' + filteredQueue[0].time.minute() : filteredQueue[0].time.minute();
-      setNextIslandEvent(hour + ':' + minute);
-    }
+  async function getNextWantedPirate() {
+    const response = await api.get('/next-wanted-pirate');
+    setNextWantedPirate(response.data.nextWantedPirate);
   }
 
-  function makeIslandEventQueue() {
-    const initialTime = dayjs().set('hour', 0).set('minute', 6).set('second', 0);
-    const finalTime = dayjs().set('hour', 23).set('minute', 6).set('second', 0);  
-    const numberOfAlarms = islandEventTimes.length;
-      
-    const queue = [];
-    let time = initialTime;
-    const now = dayjs();
-    
-    for (let i = 0; i < numberOfAlarms; i++) {
-      time = dayjs().hour(time.hour()).minute(time.minute() + 30).second(0).millisecond(0)
-      
-      if (time.isAfter(finalTime)) {
-        break;
-      }
-      
-      if(now.isBefore(time)){
-        const checkpoint = {
-          time: time,
-          title:'Evento de ilha resetado'
-        }
-        queue.push(checkpoint);
-      }      
-    }
-  
-    return queue; 
-  }
-
-  function makeWPQueue() {
-    const initialTime = dayjs().set('hour', 0).set('minute', 36).set('second', 0);
-    const finalTime = dayjs().set('hour', 23).set('minute', 36).set('second', 0);
-    const numberOfAlarms = wantedPirateTimes.length;
-      
-    const queue = [];
-    let time = initialTime;
-    const now = dayjs();
-    
-    for (let i = 0; i < numberOfAlarms; i++) {
-      time = dayjs().hour(time.hour() + 2).minute(time.minute()).second(0).millisecond(0)
-      
-
-      if (time.isAfter(finalTime)) {
-        break;
-      }
-
-      if(now.isBefore(time)){
-        const checkpoint = {
-          time: time,
-          title:'Piratas procurados resetado'
-        }
-        queue.push(checkpoint);
-      }
-    }
-  
-    return queue;
-  }
-
-  function scheduleNextWantedPirate(){
-    const queue = makeWPQueue();
-
-    const now = dayjs();
-    
-    const filteredQueue = queue.filter((checkpoint) => checkpoint.time.isAfter(now));
-    
-    
-    if(filteredQueue.length > 0){
-      const nextHour = filteredQueue[0].time.hour();
-      const nextMinute = filteredQueue[0].time.minute();
-      const job = scheduleJob({ hour: nextHour, minute: nextMinute }, () => notify(filteredQueue[0].title));
-      wpJobs.push(job);
-
-      const hour = filteredQueue[0].time.hour() < 10 ? '0' + filteredQueue[0].time.hour() : filteredQueue[0].time.hour();
-      const minute = filteredQueue[0].time.minute() < 10 ? '0' + filteredQueue[0].time.minute() : filteredQueue[0].time.minute();
-      setNextWantedPirate(hour + ':' + minute);
-    }
-  }
 
   useEffect(() => {
-    if(islandJobs.length > 0){
-      islandJobs.map((job) => job.cancel());
-    }
-    if(wpJobs.length > 0){
-      wpJobs.map((job) => job.cancel());
-    }
+    window.addEventListener('notificationdisplay', function(event: any) {
+      const notification = event.notification;
+      audio.play();
+      console.log("got it")
+      // Do something when the notification is displayed
+      if(notification.title === 'Evento de ilha resetado'){
+        getNextIslandEvent();
+      }
+      if(notification.title === 'Piratas procurados resetado'){
+        getNextWantedPirate();
+      }
+      // console.log('Notification displayed:', notification.title, notification.body);
+    });
     
     requestPermission();
   }, [])
   
+
   useEffect(() => {
-    if(islandJobs.length > 0){
-      islandJobs.map((job) => job.cancel());
-    }
-    if(wpJobs.length > 0){
-      wpJobs.map((job) => job.cancel());
+    if(isIslandEventActive){
+      scheduleIslandNotification();
     }
 
-    if (isIslandEventActive) {
-      scheduleNextIslandEvent();
-    } else {
-      islandJobs.map((job) => job.cancel());
-      setNextIslandEvent('');
+    if(!isIslandEventActive){
+      unsubscribeIslandEvent();
     }
 
-    if (isWantedPirateActive) {
-      scheduleNextWantedPirate();
-    } else {
-      wpJobs.map((job) => job.cancel());
-      setNextWantedPirate('');
+    if(isWantedPirateActive){
+      scheduleWantedPirateNotification();
     }
-  }, [isIslandEventActive, isWantedPirateActive, nextIslandEvent, nextWantedPirate])
+
+    if(!isWantedPirateActive){
+      unsubscribeWantedPirate();
+    }
+  }, [isIslandEventActive, isWantedPirateActive])
 
 
   return (
@@ -193,9 +143,9 @@ function Notificator() {
           <span aria-checked={nextWantedPirate?.length === 0} className='flex w-fit bg-zinc-900 rounded-full px-3 py-1 aria-checked:hidden'>{nextWantedPirate}</span>
         </div>
       </div>
-      <div className='w-full flex items-center justify-center'>
+      {/* <div className='w-full flex items-center justify-center'>
         <span className='flex w-fit bg-zinc-900 rounded-full px-3 py-1'>Notificações: {notificationsCount}</span>
-      </div>
+      </div> */}
       
       {/* <div className="flex gap-2">
         <input className="w-28 text-base bg-zinc-900 rounded-lg p-1 border border-yellow-300 " value={time} onChange={e => setTime(e.target.value)} type="time" />
