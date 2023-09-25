@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import notificationSound from '../assets/notification.mp3';
 import { api } from '../lib/axios';
+import dayjs from 'dayjs';
 
 // const islandEventTimes = [
 //   '00:06', '00:36', '01:06', '01:36', '02:06', 
@@ -54,20 +55,24 @@ function Notificator() {
 
   async function unsubscribeIslandEvent() {
     await api.post('/unsubscribe-island');
+    setNextIslandEvent('');
   }
 
   async function unsubscribeWantedPirate() {
     await api.post('/unsubscribe-wanted-pirate');
+    setNextWantedPirate('');
   }
 
   async function scheduleIslandNotification() {
-    const response = await api.post('/schedule-island-notification', subscription);
+    const now = dayjs().format('HH:mm');
+    const response = await api.post('/schedule-island-notification', { subscription, now });
     setNextIslandEvent(response.data.nextNotification);
   }
 
   async function scheduleWantedPirateNotification() {
-    const response = await api.post('/schedule-wanted-pirate-notification');
-    setNextWantedPirate(response.data.nextNotification);
+    const now = dayjs().format('HH:mm');
+    const response = await api.post('/schedule-wanted-pirate-notification', { subscription, now });
+    setNextWantedPirate(response.data.nextWantedPirate);
   }
 
   function requestPermission() {
@@ -86,7 +91,7 @@ function Notificator() {
 
 
   useEffect(() => {
-    window.addEventListener('notificationdisplay', function(event: any) {
+    window.addEventListener('Push', function(event: any) {
       const notification = event.notification;
       audio.play();
       console.log("got it")
