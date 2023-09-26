@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import notificationSound from '../assets/notification.mp3';
+// import notificationSound from '../assets/notification.mp3';
 import { api } from '../lib/axios';
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
 
 // const islandEventTimes = [
 //   '00:06', '00:36', '01:06', '01:36', '02:06', 
@@ -50,7 +50,7 @@ function Notificator() {
   const [nextIslandEvent, setNextIslandEvent] = useState<string>('');
   const [nextWantedPirate, setNextWantedPirate] = useState<string>('');
   
-  const audio = new Audio(notificationSound);
+  // const audio = new Audio(notificationSound);
 
 
   async function unsubscribeIslandEvent() {
@@ -63,55 +63,52 @@ function Notificator() {
     setNextWantedPirate('');
   }
 
-  async function scheduleIslandNotification() {
-    const now = dayjs().format('HH:mm');
-    const response = await api.post('/schedule-island-notification', { subscription, now });
-    setNextIslandEvent(response.data.nextNotification);
+  // async function scheduleIslandNotification() {
+  //   const now = dayjs().format('HH:mm');
+  //   const response = await api.post('/schedule-island-notification', { subscription, now });
+  //   setNextIslandEvent(response.data.nextNotification);
+  // }
+
+  // async function scheduleWantedPirateNotification() {
+  //   const now = dayjs().format('HH:mm');
+  //   const response = await api.post('/schedule-wanted-pirate-notification', { subscription, now });
+  //   setNextWantedPirate(response.data.nextWantedPirate);
+  // }
+
+  async function scheduleAllEvents(){
+   const response = await api.post('/schedule-all-events', { subscription });
+    console.log(response.data.events)
   }
 
-  async function scheduleWantedPirateNotification() {
-    const now = dayjs().format('HH:mm');
-    const response = await api.post('/schedule-wanted-pirate-notification', { subscription, now });
-    setNextWantedPirate(response.data.nextWantedPirate);
+  async function scheduleAllWP() {
+    const response = await api.post('/schedule-all-wp', { subscription });
+    console.log(response.data.wp)
   }
 
   function requestPermission() {
     Notification.requestPermission()
   }
 
-  async function getNextIslandEvent() {
-    const response = await api.get('/next-island-event');
-    setNextIslandEvent(response.data.nextIslandEvent);
-  }
+  // async function getNextIslandEvent() {
+  //   const response = await api.get('/next-island-event');
+  //   setNextIslandEvent(response.data.nextIslandEvent);
+  // }
 
-  async function getNextWantedPirate() {
-    const response = await api.get('/next-wanted-pirate');
-    setNextWantedPirate(response.data.nextWantedPirate);
-  }
+  // async function getNextWantedPirate() {
+  //   const response = await api.get('/next-wanted-pirate');
+  //   setNextWantedPirate(response.data.nextWantedPirate);
+  // }
 
 
-  useEffect(() => {
-    window.addEventListener('Push', function(event: any) {
-      const notification = event.notification;
-      audio.play();
-      console.log("got it")
-      // Do something when the notification is displayed
-      if(notification.title === 'Evento de ilha resetado'){
-        getNextIslandEvent();
-      }
-      if(notification.title === 'Piratas procurados resetado'){
-        getNextWantedPirate();
-      }
-      // console.log('Notification displayed:', notification.title, notification.body);
-    });
-    
+  useEffect(() => {    
     requestPermission();
   }, [])
   
 
   useEffect(() => {
     if(isIslandEventActive){
-      scheduleIslandNotification();
+      // scheduleIslandNotification();
+      scheduleAllEvents();
     }
 
     if(!isIslandEventActive){
@@ -119,7 +116,8 @@ function Notificator() {
     }
 
     if(isWantedPirateActive){
-      scheduleWantedPirateNotification();
+      // scheduleWantedPirateNotification();
+      scheduleAllWP();
     }
 
     if(!isWantedPirateActive){
