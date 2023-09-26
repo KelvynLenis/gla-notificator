@@ -76,7 +76,8 @@ function Notificator() {
   // }
 
   async function scheduleAllEvents(){
-   const response = await api.post('/schedule-all-events', { subscription });
+    const now = dayjs()
+    const response = await api.post('/schedule-all-events', { subscription, now });
     console.log(response.data.events)
   }
 
