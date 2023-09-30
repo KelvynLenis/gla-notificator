@@ -65,13 +65,13 @@ function Notificator() {
     setNextWantedPirate('');
   }
 
-  async function scheduleIslandNotification() {
-    const now = dayjs().format('HH:mm');
-    console.log(subscription)
-    const response = await api.post('/schedule-island-notification', { subscription, now });
-    // setNextIslandEvent(response.data.nextNotification);
-    console.log(response.data)
-  }
+  // async function scheduleIslandNotification() {
+  //   const now = dayjs().format('HH:mm');
+  //   console.log(subscription)
+  //   const response = await api.post('/schedule-island-notification', { subscription, now });
+  //   // setNextIslandEvent(response.data.nextNotification);
+  //   console.log(response.data)
+  // }
 
   // async function scheduleWantedPirateNotification() {
   //   const now = dayjs().format('HH:mm');
@@ -79,14 +79,23 @@ function Notificator() {
   //   setNextWantedPirate(response.data.nextWantedPirate);
   // }
 
-  // async function scheduleAllEvents(){
-  //   const now = dayjs()
-  //   const response = await api.post('/schedule-all-events', { subscription, now });
-  //   console.log(response.data.events)
-  // }
+  async function scheduleAllEvents(){
+    const now = dayjs()
+    const hour = now.hour() > 10 ? now.hour() : `0${now.hour()}`
+    const minute = now.minute() > 10 ? now.minute() : `0${now.minute()}`
+    const nowString = `${hour}:${minute}`
+    console.log(nowString)
+    const response = await api.post('/schedule-all-events', { subscription , nowString });
+    console.log(response.data.events)
+  }
 
   async function scheduleAllWP() {
-    const response = await api.post('/schedule-all-wp', { subscription });
+    const now = dayjs()
+    const hour = now.hour() > 10 ? now.hour() : `0${now.hour()}`
+    const minute = now.minute() > 10 ? now.minute() : `0${now.minute()}`
+    const nowString = `${hour}:${minute}`
+
+    const response = await api.post('/schedule-all-wp', { subscription, nowString });
     console.log(response.data.wp)
   }
 
@@ -112,8 +121,8 @@ function Notificator() {
 
   useEffect(() => {
     if(isIslandEventActive){
-      scheduleIslandNotification();
-      // scheduleAllEvents();
+      // scheduleIslandNotification();
+      scheduleAllEvents();
     }
 
     if(!isIslandEventActive){
